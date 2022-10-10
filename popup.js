@@ -4,15 +4,19 @@ let bookmarks = JSON.parse(localStorage.getItem("bookmarks") ?? '[]')
 
 const bookmarksDiv = document.getElementById('bookmarks');
 const searchBar = document.getElementById('search');
-
-const devMode = true;
+const mainPageDiv = document.getElementById('main-page');
+const editPageDiv = document.getElementById('edit-page');
+const saveButton = document.getElementById('save');
+const cancelButton = document.getElementById('cancel');
+const deleteButton = document.getElementById('delete');
 
 function saveBookmarks() {
     localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
 }
 
-function openBookmark(bm) {
-    chrome.tabs.create({ url: bm.link, active: false});
+function openBookmark(bm, background=false) {
+    if (bm == undefined) return;
+    chrome.tabs.create({ url: bm.link, active: !background });
 }
 
 function createBookmarkDiv(bm) {
@@ -36,7 +40,7 @@ function createBookmarkDiv(bm) {
     editButton.innerText = "Edit";
     bookmarkDiv.appendChild(editButton);
     editButton.addEventListener("click", () => {
-
+        startEditing(bm);
     })
     // br
     let brElm = document.createElement("br");
@@ -51,11 +55,33 @@ function defocusAll() {
     document.body.removeChild(tmp);
 }
 
+function arrayRemove(arr, value) {
+  var index = arr.indexOf(value);
+  if (index > -1) {
+    arr.splice(index, 1);
+  }
+  return arr;
+}
+
+
+function startEditing(bm) {
+    isEditingBookmark = true;
+    bookmarkBeingEdited = bm;
+    bookmarks = arrayRemove(bookmarks, bm);
+    updateBookmarksDiv();
+}
+
 function getChosenBookmarks() {
-    return bookmarks.filter(bm => bm.title.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase()))
+    return bookmarks.filter(bm => {
+        let filterTitle = bm.title.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
+        let filterLink = bm.link.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
+        return filterTitle || filterLink;
+    });
 }
 
 function updateBookmarksDiv() {
+    mainPageDiv.style.display = isEditingBookmark ? "none" : "block";
+    editPageDiv.style.display = isEditingBookmark ? "block" : "none";
     bookmarksDiv.innerText = "";
     let chosen = getChosenBookmarks();
     for (let index in chosen) {
@@ -64,7 +90,7 @@ function updateBookmarksDiv() {
 }
 
 document.addEventListener("keydown", (e) => {
-    let key = event.key.toLowerCase();
+    let key = event.code.toLowerCase();
     if (key == "tab") {
         defocusAll();
         e.preventDefault();
@@ -73,7 +99,14 @@ document.addEventListener("keydown", (e) => {
         setTimeout(updateBookmarksDiv, 30);
         return;
     }
-    if (key == "a") {
+    let chosen = getChosenBookmarks();
+    if (key == "keyq") {
+        searchBar.focus();
+        setTimeout(() => {
+            searchBar.value = "";
+        })
+    }
+    if (key == "keya") {
         chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
             let { url, title } = tabs[0];
             bookmarks.push({title: title, link: url, tags: []});
@@ -81,11 +114,21 @@ document.addEventListener("keydown", (e) => {
             updateBookmarksDiv();
         });
     }
-    if (key == "c" && devMode) {
-        bookmarks = [];
-        saveBookmarks();
-        updateBookmarksDiv();
+    if (key.slice(0,5) == 'digit') {
+        openBookmark(chosen[key.slice(5)*1], e.shiftKey);
     }
 });
+
+deleteButton.addEventListener("click", (e) => {
+    isEditingBookmark = false;
+    saveBookmarks();
+    updateBookmarksDiv();
+})
+
+deleteButton.addEventListener("click", (e) => {
+    isEditingBookmark = false;
+    saveBookmarks();
+    updateBookmarksDiv();
+})
 
 updateBookmarksDiv();

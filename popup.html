@@ -5,8 +5,17 @@
         <link rel="stylesheet" href="popup.css">
     </head>
     <body>
-        <input type="text" placeholder="Search" class="search" id="search" autofocus/>
-        <div class="bookmarks" id="bookmarks">
+        <div id="main-page">
+            <input type="text" placeholder="Search" class="search" id="search" autofocus/>
+            <div class="bookmarks" id="bookmarks">
+            </div>
+        </div>
+        <div id="edit-page">
+            <div class="bottom-row-edit">
+                <button type="button" id="save">Save</button>
+                <button type="button" id="cancel">Cancel</button>
+                <button type="button" id="delete">Delete</button>
+            </div>
         </div>
         <script src="popup.js"></script>
     </body>
