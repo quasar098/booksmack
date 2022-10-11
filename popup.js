@@ -1,5 +1,7 @@
 let isEditingBookmark = false;
-let bookmarkBeingEdited = {title: '', link: '', tags: []};
+let editingIndex = 0;
+let editingBookmark = {title: '', link: '', tags: []};
+let originalEditingBookmark = {title: '', link: '', tags: []}
 let bookmarks = JSON.parse(localStorage.getItem("bookmarks") ?? '[]')
 
 const bookmarksDiv = document.getElementById('bookmarks');
@@ -9,6 +11,9 @@ const editPageDiv = document.getElementById('edit-page');
 const saveButton = document.getElementById('save');
 const cancelButton = document.getElementById('cancel');
 const deleteButton = document.getElementById('delete');
+const editTitle = document.getElementById('eTitle');
+const editLink = document.getElementById('eLink');
+const editTags = document.getElementById('eTags');
 
 function saveBookmarks() {
     localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
@@ -20,6 +25,7 @@ function openBookmark(bm, background=false) {
 }
 
 function createBookmarkDiv(bm) {
+    if (bm.title == undefined) return;
     // outer
     let bookmarkDiv = document.createElement("div");
     bookmarkDiv.classList.add("bookmark");
@@ -66,16 +72,38 @@ function arrayRemove(arr, value) {
 
 function startEditing(bm) {
     isEditingBookmark = true;
-    bookmarkBeingEdited = bm;
+    editTitle.value = bm.title;
+    editLink.value = bm.link;
+    editTags.value = bm.tags.join(',');
+    editingBookmark = bm;
+    bookmarks.forEach((item, i) => {
+        if (item.title == bm.title && item.link == bm.link) {
+            editingIndex = i;
+        }
+    });
+    originalEditingBookmark = {title: bm.title, link: bm.link, tags: [...bm.tags]}
     bookmarks = arrayRemove(bookmarks, bm);
     updateBookmarksDiv();
 }
 
 function getChosenBookmarks() {
     return bookmarks.filter(bm => {
-        let filterTitle = bm.title.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
-        let filterLink = bm.link.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
-        return filterTitle || filterLink;
+        if (bm.title == undefined) return false;
+        if (searchBar.value[0] == '!') {
+            if (bm.tags.length == 0 || bm.tags[0] == '') return false;
+            for (let tagIndex in bm.tags) {
+                let tag = bm.tags[tagIndex];
+                if (tag.toLowerCase().replaceAll(" ", '').includes(searchBar.value.slice(1).toLowerCase().replaceAll(" ", ''))) {
+                    console.log(tag, bm);
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            let filterTitle = bm.title.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
+            let filterLink = bm.link.toLowerCase().replaceAll(" ", "").includes(searchBar.value.replaceAll(" ", "").toLowerCase())
+            return (filterTitle || filterLink);
+        }
     });
 }
 
@@ -85,21 +113,33 @@ function updateBookmarksDiv() {
     bookmarksDiv.innerText = "";
     let chosen = getChosenBookmarks();
     for (let index in chosen) {
-        bookmarksDiv.appendChild(createBookmarkDiv(chosen[index]));
+        let bmDiv = createBookmarkDiv(chosen[index]);
+        if (bmDiv != undefined) {
+            bookmarksDiv.appendChild(bmDiv);
+        }
     }
 }
 
 document.addEventListener("keydown", (e) => {
     let key = event.code.toLowerCase();
+    let chosen = getChosenBookmarks();
+    if (isEditingBookmark) return;
     if (key == "tab") {
         defocusAll();
         e.preventDefault();
+    }
+    if (key == "enter") {
+        openBookmark(chosen[0], e.shiftKey);
     }
     if (document.activeElement.tagName == "INPUT") {
         setTimeout(updateBookmarksDiv, 30);
         return;
     }
-    let chosen = getChosenBookmarks();
+    if (key == "equal") {
+        for (let index in chosen) {
+            openBookmark(chosen[index], e.shiftKey);
+        }
+    }
     if (key == "keyq") {
         searchBar.focus();
         setTimeout(() => {
@@ -114,8 +154,12 @@ document.addEventListener("keydown", (e) => {
             updateBookmarksDiv();
         });
     }
+    if (key == "keyn") {
+        startEditing({title: 'New Bookmark', link: '', tags: []})
+    }
     if (key.slice(0,5) == 'digit') {
-        openBookmark(chosen[key.slice(5)*1], e.shiftKey);
+        let keyDigit = key.slice(5)*1-1;
+        if (keyDigit >= 0) openBookmark(chosen[keyDigit], e.shiftKey);
     }
 });
 
@@ -124,9 +168,18 @@ deleteButton.addEventListener("click", (e) => {
     saveBookmarks();
     updateBookmarksDiv();
 })
-
-deleteButton.addEventListener("click", (e) => {
+cancelButton.addEventListener("click", (e) => {
     isEditingBookmark = false;
+    bookmarks.splice(editingIndex, 0, originalEditingBookmark);
+    saveBookmarks();
+    updateBookmarksDiv();
+})
+saveButton.addEventListener("click", (e) => {
+    isEditingBookmark = false;
+    editingBookmark.title = editTitle.value;
+    editingBookmark.link = editLink.value;
+    editingBookmark.tags = editTags.value.split(',');
+    bookmarks.splice(editingIndex, 0, editingBookmark)
     saveBookmarks();
     updateBookmarksDiv();
 })

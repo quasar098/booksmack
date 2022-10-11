@@ -36,16 +36,16 @@ if you would, please go to `chrome://extensions/shortcuts` and set the keybind f
 
 #### shortcuts:
 
-main
+main shortcuts
 
 - `TAB` enter fast mode
 - `Q` enter search mode (default)
+- `ENTER` open bookmark at the top of the list
 
-fast mode
+fast mode shortcuts
 
 - `A` add current page as bookmark
-
-index specific
-
-- `0-9` open link based on index
-- `Shift+0-9` open but in the background
+- `N` add custom bookmark
+- `=` open all bookmarks
+- `1-9` open link based on sighted bookmark index
+- `Shift+Option` open but in the background
