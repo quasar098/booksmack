@@ -157,6 +157,9 @@ document.addEventListener("keydown", (e) => {
     if (key == "keyn") {
         startEditing({title: 'New Bookmark', link: '', tags: []})
     }
+    if (key == "keys") {
+        navigator.clipboard.writeText(JSON.stringify(bookmarks));
+    }
     if (key.slice(0,5) == 'digit') {
         let keyDigit = key.slice(5)*1-1;
         if (keyDigit >= 0) openBookmark(chosen[keyDigit], e.shiftKey);
