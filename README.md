@@ -15,7 +15,7 @@ it is like a relational database
 | happy songs | song #3 |
 
 Song #1 could be happy, but it is also a good song<br>
-it can't go in both folders with this method though
+it can't go in both folders with regular bookmarks though
 
 ### with extension
 
