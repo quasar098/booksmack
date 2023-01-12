@@ -32,7 +32,7 @@ Song #1 can go into both happy songs category AND good songs category
 
 this is going to be used a bit like vim, with a high learning curve but efficient usage
 
-if you would, please go to `chrome://extensions/shortcuts` and set the keybind for the extension as `Ctrl+B`
+if you would, please go to `chrome://extensions/shortcuts` and set the keybind for the extension as `Ctrl+Shift+B`
 
 #### shortcuts:
 
